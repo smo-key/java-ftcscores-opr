@@ -75,9 +75,14 @@ public final class Runner {
 	
 	public static void main(String[] args) {
 		
-		//Get all events
-		System.out.println("Getting all events...");
-		REST.Response r = REST.request("https://api.ftcscores.com/api/events", Method.GET);
+		Scanner in = new Scanner(System.in);
+		
+		System.out.println("FTCScores Real-time OPR library\r\n");
+		System.out.print("Enter event link: https://ftcscores.com/event/");
+		String link = in.nextLine();
+		
+		System.out.println("Getting event '" + link + "'...");
+		REST.Response r = REST.request("https://api.ftcscores.com/api/events/" + link, Method.GET);
 		
 		if (r.bad()) {
 			System.err.println(r.raw());
@@ -85,53 +90,8 @@ public final class Runner {
 			System.exit(1);
 		}
 		
-		Requests.Event[] events = (Event[]) r.json(Requests.Event[].class);
-		ArrayList<Requests.Event.Ranking> _rankings = new ArrayList<>();
-		ArrayList<Requests.Event.Match> _matches = new ArrayList<>();
-		
-		for (int e=0; e<events.length; e++) {
-			//Send GET https://api.ftcscores.com/api/event/:id
-			System.out.println("Getting " + events[e].link + "...");
-			r = REST.request("https://api.ftcscores.com/api/events/" + events[e].link, Method.GET);
-			
-			if (r.bad()) {
-				System.err.println(r.raw());
-				System.err.println("Bad status: " + r.status());
-				System.exit(1);
-			}
-			
-			//Get result
-			Requests.Event ev = (Event) r.json(Requests.Event.class);
-			if (!ev.isFinals) {
-				int index = 1;
-				for (Requests.Event.Ranking ranking : ev.rankings)
-				{
-					boolean dup = false;
-					for (int i=0; i<_rankings.size(); i++)
-					{
-						if (_rankings.get(i).number == ranking.number) {
-							dup = true; break;
-						}
-					}
-					
-					if (!dup) {
-						ranking.rank = index;
-						index++;
-						_rankings.add(ranking);
-					}
-				}
-					
-				for (Requests.Event.Match match : ev.matches)
-				{
-					_matches.add(match);
-				}
-			}
-		}
-		
-		//Create combined event
-		Requests.Event event = new Requests.Event();
-		event.rankings = _rankings.toArray(new Requests.Event.Ranking[]{});
-		event.matches = _matches.toArray(new Requests.Event.Match[]{});
+		//Get result
+		Requests.Event event = (Event) r.json(Requests.Event.class);
 		
 		//Store into matrix
 		//Based on http://www.chiefdelphi.com/media/papers/download/3321
@@ -195,13 +155,13 @@ public final class Runner {
 		}
 		
 		//Print matrix
-		for (int i=0; i<N; i++) {
-			for (int j=0; j<N; j++) {
-				System.out.printf("%2d ", (int)M[i][j]);
-			}
-			System.out.printf("  rank %2d = %f", i+1, B_CCWM[i]);
-			System.out.println();
-		}
+//		for (int i=0; i<N; i++) {
+//			for (int j=0; j<N; j++) {
+//				System.out.printf("%2d ", (int)M[i][j]);
+//			}
+//			System.out.printf("  rank %2d = %f", i+1, B_CCWM[i]);
+//			System.out.println();
+//		}
 		
 		//Decompose system of equations (Cholesky)
 		//Ax = B
