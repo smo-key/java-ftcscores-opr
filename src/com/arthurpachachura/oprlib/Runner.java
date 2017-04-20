@@ -3,19 +3,10 @@ package com.arthurpachachura.oprlib;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Scanner;
-
-import javax.xml.ws.Response;
-
-import org.n52.matlab.control.MatlabConnectionException;
-import org.n52.matlab.control.MatlabProxy;
-import org.n52.matlab.control.MatlabProxyFactory;
 
 import com.arthurpachachura.oprlib.REST.Method;
 import com.arthurpachachura.oprlib.Requests.Event;
-import com.google.gson.Gson;
 
 public final class Runner {
 
@@ -101,7 +92,7 @@ public final class Runner {
 		double[] B_OPR = new double[N];		//score of all of that team's matches - highest rank first
 		double[] B_CCWM = new double[N];	//winning margins of each match - highest rank first
 		
-		System.out.println("Preparing size " + N + " matrix for computation...");
+		System.out.println("Preparing matrix for computation...");
 		
 		//for each team, get all matches that team participated in
 		//TODO yeah, yeah, O(n^2). I know.
@@ -168,18 +159,15 @@ public final class Runner {
 		Jama.Matrix A = new Jama.Matrix(M);
 		System.out.println("Decomposing...");
 		Jama.CholeskyDecomposition decomp = A.chol();
-		System.out.println("Solving for OPR...");
 		double[] opr = decomp.solve(new Jama.Matrix(B_OPR, 1).transpose()).transpose().getArray()[0];
-		System.out.println("Solving for CCWM...");
 		double[] ccwm = decomp.solve(new Jama.Matrix(B_CCWM, 1).transpose()).transpose().getArray()[0];
 		
 		//Sort and return OPRs, CCWMs
-		System.out.println("Merging results...");
 		TeamOPR[] teams = new TeamOPR[N];
 		for (int i=0; i<N; i++) {
 			teams[i] = new TeamOPR(event.rankings[i], opr[i], ccwm[i]);
 		}
-		Arrays.sort(teams, Comparator.comparing((TeamOPR team) -> team.getCCWM()).reversed());
+		Arrays.sort(teams, Comparator.comparing((TeamOPR team) -> team.getOPR()).reversed());
 		
 		//Print output
 		for (int i=0; i<N; i++) {
@@ -188,6 +176,7 @@ public final class Runner {
 			System.out.println();
 		}
 		
+		in.close();
 	}
 
 }

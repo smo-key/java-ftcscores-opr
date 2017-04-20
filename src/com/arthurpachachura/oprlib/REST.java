@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.google.gson.Gson;
@@ -48,8 +47,7 @@ final class REST {
 		boolean bad() {
 			return !good();
 		}
-		@SuppressWarnings("unchecked")
-		Object json(Class type) {
+		Object json(Class<?> type) {
 			Gson gson = new Gson();
 			return gson.fromJson(result.toString(), type);
 		}

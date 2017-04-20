@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 class Requests {
 	
+	@SuppressWarnings("serial")
 	static class Event implements Serializable {
 		String fullName, link, location, program, shortName, status, subtitle, type;
 		Match[] matches;
